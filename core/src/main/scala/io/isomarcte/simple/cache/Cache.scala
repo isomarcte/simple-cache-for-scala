@@ -13,22 +13,21 @@ import java.util.function.{BiFunction => JBiFunction}
 trait Cache[A, B, C, F[_]] {
   def clear: F[Unit]
   def modifyWithKey(key: A, f: (A => Option[B] => Option[B])): F[(C, Option[B])]
-  protected def functorMap[D, E](fc: F[D], f: D => E): F[E]
-  protected def applicativePure[D](d: D): F[D]
+  protected def fmap[D, E](fc: F[D], f: D => E): F[E]
+  protected def pure[D](d: D): F[D]
   protected final def void(f: F[_]): F[Unit] =
-    applicativePure(())
+    pure(())
 
   final def modify(key: A, f: Option[B] => Option[B]): F[(C, Option[B])] =
     modifyWithKey(key, Function.const(f))
 
-  def get(key: A): F[Option[B]] =
-    functorMap[(C, Option[B]), Option[B]](modify(key, identity), _._2)
+  def get(key: A): F[Option[B]]
   def putIfAbsent(key: A, value: B): F[(C, Option[B])] =
-    modify(key, _.map(Some(_)).getOrElse(Some(value)))
+    modify(key, o => Some(o.getOrElse(value)))
   def replace(key: A, value: B): F[(C, Option[B])] =
     modify(key, Function.const(Some(value)))
   def replace_(key: A, value: B): F[C] =
-    functorMap[(C, Option[B]), C](replace(key, value), _._1)
+    fmap[(C, Option[B]), C](replace(key, value), _._1)
 }
 
 object Cache {
@@ -43,9 +42,9 @@ object Cache {
   type SimpleMutableCache[A, B] = MutableCache[A, B, Id]
 
   private[this] final class Simple[A, B](m: JMap[A, Option[B]]) extends Cache[A, B, Unit, Id] {
-    override final protected def functorMap[D, E](fc: Id[D], f: D => E): Id[E] =
+    override final protected def fmap[D, E](fc: Id[D], f: D => E): Id[E] =
       f(fc)
-    override final protected def applicativePure[D](d: D): Id[D] = d
+    override final protected def pure[D](d: D): Id[D] = d
 
     override final def clear: Id[Unit] = this.m.clear
     override final def modifyWithKey(key: A, f: (A => Option[B] => Option[B])): Id[(Unit, Option[B])] =
@@ -63,21 +62,25 @@ object Cache {
           }
         )
       )
+
+    override final def get(key: A): Id[Option[B]] =
+      this.m.getOrDefault(key, None)
   }
 
   private[this] final class SimpleLockBased[A, B](fair: Boolean) extends Cache[A, B, Unit, Id] {
     private val m: JWeakHashMap[A, Option[B]] = new JWeakHashMap()
     private val rwLock: ReadWriteLock = new ReentrantReadWriteLock(fair)
 
-    override final protected def functorMap[D, E](fc: Id[D], f: D => E): Id[E] =
+    override final protected def fmap[D, E](fc: Id[D], f: D => E): Id[E] =
       f(fc)
-    override final protected def applicativePure[D](d: D): Id[D] = d
+    override final protected def pure[D](d: D): Id[D] = d
 
     override final def clear: Id[Unit] = {
       this.rwLock.writeLock.lockInterruptibly()
       this.m.clear
-      this.rwLock.writeLock.unlock
+      this.rwLock.writeLock.unlock()
     }
+
     override final def modifyWithKey(key: A, f: (A => Option[B] => Option[B])): Id[(Unit, Option[B])] = {
       this.rwLock.writeLock.lockInterruptibly()
       val result: Option[B] =
@@ -95,6 +98,7 @@ object Cache {
       this.rwLock.writeLock.unlock()
       ((), result)
     }
+
     override final def get(key: A): Id[Option[B]] = {
       this.rwLock.readLock.lockInterruptibly()
       val value: Option[B] = this.m.getOrDefault(key, None)
@@ -128,16 +132,16 @@ object Cache {
     }
   }
 
-  def concurrentSimpleCacheDefaults[A, B]: SimpleMutableCache[A, B] = {
+  def synchronizedMutableCache[A, B]: SimpleMutableCache[A, B] = {
     val m: JMap[A, Option[B]] =
       JCollections.synchronizedMap(new JWeakHashMap[A, Option[B]]())
     new Simple(m)
   }
 
-  def lockConcurrentSimpleMutableCacheDefaults[A, B]: SimpleMutableCache[A, B] =
+  def lockBasedMutableCache[A, B]: SimpleMutableCache[A, B] =
     new SimpleLockBased(false)
 
-  def simpleCacheUnsafeDefaults[A, B]: SimpleMutableCache[A, B] =
+  def simpleCacheDeafults[A, B]: SimpleMutableCache[A, B] =
     new Simple(new JWeakHashMap[A, Option[B]])
 
   def simpleCacheUnsafe[A, B](

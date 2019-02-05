@@ -8,6 +8,7 @@ import org.openjdk.jmh.annotations._
 
 @Warmup(iterations = 10, time = 20)
 @Measurement(iterations = 15, time = 30)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 class CacheMissBenchmark {
   import CacheMissBenchmark._
 
@@ -112,13 +113,13 @@ object CacheMissBenchmark {
   @State(Scope.Benchmark)
   class SynchronizedBenchmarkState extends IdAbstractBenchmarkState {
     override protected final val cache: Cache.MutableCache[Foo, Bar, Id] =
-      Cache.concurrentSimpleCacheDefaults
+      Cache.synchronizedMutableCache
   }
 
   @State(Scope.Benchmark)
   class LockSynchronizedBenchmarkState extends IdAbstractBenchmarkState {
     override protected final val cache: Cache.MutableCache[Foo, Bar, Id] =
-      Cache.lockConcurrentSimpleMutableCacheDefaults
+      Cache.lockBasedMutableCache
   }
 
   abstract class IOAbstractBenchmarkState extends AbstractBenchmarkState[IO] {
@@ -130,12 +131,12 @@ object CacheMissBenchmark {
   @State(Scope.Benchmark)
   class IOSynchronizedBenchmarkState extends IOAbstractBenchmarkState {
     override protected final val cache: Cache.MutableCache[Foo, Bar, IO] =
-      CatsCache.concurrentSimpleCatsCacheDefaults
+      CatsCache.synchronizedMutableCache
   }
 
   @State(Scope.Benchmark)
   class IOLockSynchronizedBenchmarkState extends IOAbstractBenchmarkState {
     override protected final val cache: Cache.MutableCache[Foo, Bar, IO] =
-      CatsCache.lockConcurrentSimpleCatsCacheDefaults
+      CatsCache.lockBasedMutableCache
   }
 }
