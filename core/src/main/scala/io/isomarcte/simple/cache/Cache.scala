@@ -6,6 +6,8 @@ import java.util.{
   Collections => JCollections,
   Objects => JObjects
 }
+import java.util.concurrent._
+import java.util.concurrent.locks._
 import java.util.function.{BiFunction => JBiFunction}
 
 trait Cache[A, B, C, F[_]] {
@@ -63,6 +65,44 @@ object Cache {
       )
   }
 
+  private[this] final class SimpleLockBased[A, B](fair: Boolean) extends Cache[A, B, Unit, Id] {
+    private val m: JWeakHashMap[A, Option[B]] = new JWeakHashMap()
+    private val rwLock: ReadWriteLock = new ReentrantReadWriteLock(fair)
+
+    override final protected def functorMap[D, E](fc: Id[D], f: D => E): Id[E] =
+      f(fc)
+    override final protected def applicativePure[D](d: D): Id[D] = d
+
+    override final def clear: Id[Unit] = {
+      this.rwLock.writeLock.lockInterruptibly()
+      this.m.clear
+      this.rwLock.writeLock.unlock
+    }
+    override final def modifyWithKey(key: A, f: (A => Option[B] => Option[B])): Id[(Unit, Option[B])] = {
+      this.rwLock.writeLock.lockInterruptibly()
+      val result: Option[B] =
+        this.m.compute(
+          key,
+          new JBiFunction[A, Option[B], Option[B]]{
+            override def apply(key: A, currentValue: Option[B]): Option[B] =
+              if (JObjects.isNull(currentValue)) {
+                f(key)(None)
+              } else {
+                f(key)(currentValue)
+              }
+          }
+        )
+      this.rwLock.writeLock.unlock()
+      ((), result)
+    }
+    override final def get(key: A): Id[Option[B]] = {
+      this.rwLock.readLock.lockInterruptibly()
+      val value: Option[B] = this.m.getOrDefault(key, None)
+      this.rwLock.readLock.unlock()
+      value
+    }
+  }
+
   def simpleCache[A, B](
     initialCapacity: Int,
     loadFactor: Float
@@ -88,11 +128,14 @@ object Cache {
     }
   }
 
-  def concurrentSimpleCacheDefaultsUnsafe[A, B]: SimpleMutableCache[A, B] = {
+  def concurrentSimpleCacheDefaults[A, B]: SimpleMutableCache[A, B] = {
     val m: JMap[A, Option[B]] =
       JCollections.synchronizedMap(new JWeakHashMap[A, Option[B]]())
-    new Simple(new JWeakHashMap[A, Option[B]]())
+    new Simple(m)
   }
+
+  def lockConcurrentSimpleMutableCacheDefaults[A, B]: SimpleMutableCache[A, B] =
+    new SimpleLockBased(false)
 
   def simpleCacheUnsafeDefaults[A, B]: SimpleMutableCache[A, B] =
     new Simple(new JWeakHashMap[A, Option[B]])

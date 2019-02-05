@@ -50,8 +50,10 @@ lazy val cats = project.settings(
 ).dependsOn(core)
 
 lazy val jmh = project.settings(
-  name := s"projectName-jmh",
+  name := s"$projectName-jmh",
   libraryDependencies ++= Seq(
     jmhCore
   )
-).enablePlugins(JmhPlugin).dependsOn(cats)
+).dependsOn(
+  cats
+)

@@ -17,6 +17,9 @@ object CatsCache {
       F.delay(this.cache.modifyWithKey(key, f))
   }
 
-  def concurrentSimpleCatsCacheDefaultsUnsafe[A, B, F[_]: Sync]: Cache.MutableCache[A, B, F] =
-    new ProxySyncCache(Cache.concurrentSimpleCacheDefaultsUnsafe)
+  def concurrentSimpleCatsCacheDefaults[A, B, F[_]: Sync]: Cache.MutableCache[A, B, F] =
+    new ProxySyncCache(Cache.concurrentSimpleCacheDefaults)
+
+  def lockConcurrentSimpleCatsCacheDefaults[A, B, F[_]: Sync]: Cache.MutableCache[A, B, F] =
+    new ProxySyncCache(Cache.lockConcurrentSimpleMutableCacheDefaults)
 }
