@@ -1,3 +1,5 @@
+import ReleaseTransformations._
+
 // Constants //
 
 val projectName = "simple-cache-for-scala"
@@ -40,7 +42,6 @@ lazy val scalacheck             = scalacheckG %% scalacheckA            % scalac
 
 ThisBuild / organization       := "io.isomarcte"
 ThisBuild / scalaVersion       := scala212
-ThisBuild / version            := "0.0.1-SNAPSHOT"
 ThisBuild / scalacOptions      += "-target:jvm-1.8"
 ThisBuild / javacOptions       ++= Seq("-source", "1.8", "-target", "1.8")
 ThisBuild / crossScalaVersions := scalaVersions
@@ -72,7 +73,19 @@ ThisBuild / developers := List(
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 ThisBuild / releaseCrossBuild := true
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommand("publishSigned"),
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
 // Root Project //
 
 lazy val root = (project in file(".")).settings(
