@@ -44,7 +44,6 @@ ThisBuild / organization       := "io.isomarcte"
 ThisBuild / scalaVersion       := scala212
 ThisBuild / scalacOptions      += "-target:jvm-1.8"
 ThisBuild / javacOptions       ++= Seq("-source", "1.8", "-target", "1.8")
-ThisBuild / crossScalaVersions := scalaVersions
 
 // General Configuration //
 lazy val publishSettings = Seq(
@@ -71,7 +70,8 @@ lazy val publishSettings = Seq(
   ),
   credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
   releaseCrossBuild := true,
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  crossScalaVersions := scalaVersions
 )
 
 releaseProcess := Seq[ReleaseStep](
@@ -82,7 +82,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  releaseStepCommand("publishSigned"),
+  releaseStepCommand("publishLocal"),
   setNextVersion,
   commitNextVersion,
   pushChanges
