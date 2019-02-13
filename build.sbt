@@ -48,30 +48,30 @@ ThisBuild / crossScalaVersions := scalaVersions
 
 // General Configuration //
 
-ThisBuild / homepage := Some(url("https://github.com/isomarcte/simple-cache-for-scala"))
-ThisBuild / licenses := Seq("BSD3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
-ThisBuild / publishMavenStyle := true
-ThisBuild / publishArtifact in Test := false
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild /publishTo := {
+homepage := Some(url("https://github.com/isomarcte/simple-cache-for-scala"))
+licenses := Seq("BSD3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
+publishMavenStyle := true
+publishArtifact in Test := false
+pomIncludeRepository := { _ => false }
+publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-ThisBuild / scmInfo := Some(
+scmInfo := Some(
   ScmInfo(
     url("https://github.com/isomarcte/simple-cache-for-scala"),
     "scm:git:git@github.com:isomarcte/simple-cache-for-scala.git"
   )
 )
-ThisBuild / developers := List(
+developers := List(
   Developer("isomarcte", "David Strawn", "isomarcte@gmail.com", url("https://github.com/isomarcte"))
 )
 
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-ThisBuild / releaseCrossBuild := true
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+releaseCrossBuild := true
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
