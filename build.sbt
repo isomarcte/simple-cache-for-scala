@@ -24,7 +24,7 @@ val scalacheckA             = "scalacheck"
 
 // Versions //
 
-val catsEffectV = "1.2.0"
+val catsEffectV = "0.10.1"
 val jmhV        = "1.21"
 val scalacheckV = "1.14.0"
 
@@ -71,6 +71,7 @@ ThisBuild / developers := List(
 
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 ThisBuild / releaseCrossBuild := true
+ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 // Root Project //
 
