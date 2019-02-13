@@ -82,7 +82,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  releaseStepCommand("publishLocal"),
+  releaseStepCommand("publishSigned"),
   setNextVersion,
   commitNextVersion,
   pushChanges
