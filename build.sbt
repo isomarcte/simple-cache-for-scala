@@ -71,7 +71,7 @@ ThisBuild / developers := List(
 
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 ThisBuild / releaseCrossBuild := true
-ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 // Root Project //
 
