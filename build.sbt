@@ -47,32 +47,33 @@ ThisBuild / javacOptions       ++= Seq("-source", "1.8", "-target", "1.8")
 ThisBuild / crossScalaVersions := scalaVersions
 
 // General Configuration //
-
-homepage := Some(url("https://github.com/isomarcte/simple-cache-for-scala"))
-licenses := Seq("BSD3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
-publishMavenStyle := true
-publishArtifact in Test := false
-pomIncludeRepository := { _ => false }
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
-scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/isomarcte/simple-cache-for-scala"),
-    "scm:git:git@github.com:isomarcte/simple-cache-for-scala.git"
-  )
+lazy val publishSettings = Seq(
+  homepage := Some(url("https://github.com/isomarcte/simple-cache-for-scala")),
+  licenses := Seq("BSD3" -> url("https://opensource.org/licenses/BSD-3-Clause")),
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  pomIncludeRepository := { _ => false },
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  },
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/isomarcte/simple-cache-for-scala"),
+      "scm:git:git@github.com:isomarcte/simple-cache-for-scala.git"
+    )
+  ),
+  developers := List(
+    Developer("isomarcte", "David Strawn", "isomarcte@gmail.com", url("https://github.com/isomarcte"))
+  ),
+  credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
+  releaseCrossBuild := true,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value
 )
-developers := List(
-  Developer("isomarcte", "David Strawn", "isomarcte@gmail.com", url("https://github.com/isomarcte"))
-)
 
-credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-releaseCrossBuild := true
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
@@ -101,7 +102,7 @@ lazy val core = project.settings(
   libraryDependencies ++= Seq(
     scalacheck % Test
   )
-)
+).settings(publishSettings: _*)
 
 lazy val cats = project.settings(
   name := s"$projectName-cats",
@@ -109,7 +110,7 @@ lazy val cats = project.settings(
     catsEffect,
     scalacheck % Test
   )
-).dependsOn(core)
+).settings(publishSettings: _*).dependsOn(core)
 
 lazy val jmh = project.settings(
   name := s"$projectName-jmh",
