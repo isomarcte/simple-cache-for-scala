@@ -91,9 +91,8 @@ releaseProcess := Seq[ReleaseStep](
 
 lazy val root = (project in file(".")).settings(
   name := projectName,
-  crossScalaVersions := Nil,
   skip in publish := true
-).aggregate(core, cats)
+).aggregate(core, cats).settings(publishSettings: _*)
 
 // Projects //
 
