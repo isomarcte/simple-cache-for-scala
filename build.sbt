@@ -7,6 +7,7 @@ val projectName = "simple-cache-for-scala"
 val openJdkJmhG = "org.openjdk.jmh"
 val typelevelG  = "org.typelevel"
 
+
 // Artifacts //
 
 val jmhCoreA = "jmh-core"

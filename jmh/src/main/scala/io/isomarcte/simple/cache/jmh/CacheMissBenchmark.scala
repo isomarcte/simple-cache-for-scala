@@ -91,7 +91,7 @@ object CacheMissBenchmark {
           case Some(bar) => this.pure(bar)
           case _ =>
             val bar: Bar = this.missGetWithFoo(cost, f)
-            this.fmap(this.cache.putIfAbsent(f, bar), Function.const(bar))
+            this.fmap(this.cache.putIfAbsent(f, ExpiringEntry(bar, None)), Function.const(bar))
         }
       )
 

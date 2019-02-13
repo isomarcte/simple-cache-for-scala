@@ -13,10 +13,12 @@ object CatsCache {
 
     override final val clear: F[Unit] =
       F.delay(this.cache.clear)
-    override final def modifyWithKey(key: A, f: (A => Option[B] => Option[B])): F[(Unit, Option[B])] =
+    override final def modifyWithKey(key: A, f: (A => Option[ExpiringEntry[B]] => Option[ExpiringEntry[B]])): F[(Unit, Option[B])] =
       F.delay(this.cache.modifyWithKey(key, f))
     override final def get(key: A): F[Option[B]] =
       F.delay(this.cache.get(key))
+    override final def remove(key: A): F[(Unit, Option[B])] =
+      F.delay(this.cache.remove(key))
   }
 
   def synchronizedMutableCache[A, B, F[_]: Sync]: Cache.MutableCache[A, B, F] =
