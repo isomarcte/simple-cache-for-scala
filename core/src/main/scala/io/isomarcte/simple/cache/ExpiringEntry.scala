@@ -12,7 +12,7 @@ final case class ExpiringEntry[A](value: A, duration: Option[Duration]) {
 
 object ExpiringEntry {
   def isExpired[A](e: ExpiringEntry[A]): Boolean =
-    e.expiration.map(_.isAfter(Instant.now())).getOrElse(false)
+    e.expiration.map(_.isBefore(Instant.now())).getOrElse(false)
   def isNotExpired[A](e: ExpiringEntry[A]): Boolean =
     !isExpired(e)
 }
