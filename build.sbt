@@ -2,9 +2,10 @@ import ReleaseTransformations._
 
 // Constants //
 
-val projectName = "simple-cache-for-scala"
-val scala211    = "2.11.12"
-val scala212    = "2.12.8"
+val previousVersion = "0.0.15"
+val projectName     = "simple-cache-for-scala"
+val scala211        = "2.11.12"
+val scala212        = "2.12.10"
 
 // Lazy
 
@@ -26,9 +27,9 @@ val scalacheckA             = "scalacheck"
 
 // Versions //
 
-val catsEffectV = "0.10.1"
+val catsEffectV = "1.4.0"
 val jmhV        = "1.21"
-val scalacheckV = "1.14.0"
+val scalacheckV = "1.14.2"
 
 // GAVs //
 
@@ -91,7 +92,8 @@ releaseProcess := Seq[ReleaseStep](
 
 lazy val root = (project in file(".")).settings(
   name := projectName,
-  skip in publish := true
+  skip in publish := true,
+  mimaFailOnNoPrevious := false
 ).aggregate(core, cats).settings(publishSettings: _*)
 
 // Projects //
@@ -100,16 +102,18 @@ lazy val core = project.settings(
   name := s"$projectName-core",
   libraryDependencies ++= Seq(
     scalacheck % Test
-  )
-).settings(publishSettings: _*)
+  ),
+  mimaPreviousArtifacts := Set("io.isomarcte" %% s"${projectName}-core" % previousVersion)
+).settings(publishSettings: _*).enablePlugins(MimaPlugin)
 
 lazy val cats = project.settings(
   name := s"$projectName-cats",
   libraryDependencies ++= Seq(
     catsEffect,
     scalacheck % Test
-  )
-).settings(publishSettings: _*).dependsOn(core)
+  ),
+  mimaPreviousArtifacts := Set("io.isomarcte" %% s"${projectName}-cats" % previousVersion)
+).settings(publishSettings: _*).dependsOn(core).enablePlugins(MimaPlugin)
 
 lazy val jmh = project.settings(
   name := s"$projectName-jmh",
@@ -122,4 +126,6 @@ lazy val jmh = project.settings(
   cats
 ).enablePlugins(
   JmhPlugin
+).disablePlugins(
+  MimaPlugin
 )

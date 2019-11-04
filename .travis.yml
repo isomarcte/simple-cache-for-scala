@@ -1,0 +1,8 @@
+language: scala
+scala:
+  2.13.1
+script:
+  - sbt +clean +compile
+  - sbt +test
+  - sbt +core/mimaReportBinaryIssues
+  - sbt +cats/mimaReportBinaryIssues
